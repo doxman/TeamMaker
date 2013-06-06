@@ -1,0 +1,2 @@
+FIELDS;;Speed (knots)
+Ferdinand Magellan;;7
