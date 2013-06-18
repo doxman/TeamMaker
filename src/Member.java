@@ -51,11 +51,6 @@ class Member
 	
 	public String toString ()
 	{
-		String ret = name;
-		for (int i = 0; i < values.size(); i++)
-		{
-			ret = ret + ";;" + values.get(i);
-		}
-		return ret;
+		return name;
 	}
 }

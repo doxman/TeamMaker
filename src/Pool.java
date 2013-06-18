@@ -17,6 +17,11 @@ class Pool
 		numMembers = 0;
 	}
 	
+	ArrayList<Member> getMembers()
+	{
+		return members;
+	}
+	
 	int getNumFields()
 	{
 		return numFields;
@@ -53,6 +58,28 @@ class Pool
 		return null;
 	}
 	
+	boolean setField (int loc, String name)
+	{
+		int ind = fields.indexOf(name);
+		if (ind != -1 && ind != loc)
+			return false;
+		fields.set(loc, name);
+		return true;
+	}
+	
+	boolean setMemberName (int loc, String name)
+	{
+		for (int i = 0; i < numMembers; i++)
+		{
+			if (members.get(i).getName().equals(name) && i != loc)
+			{
+				return false;
+			}
+		}
+		members.get(loc).setName(name);
+		return true;
+	}
+	
 	boolean addField (String field)
 	{
 		if (fields.indexOf(field) != -1)
@@ -64,7 +91,7 @@ class Pool
 		for (int i = 0; i < numMembers; i++)
 		{
 			temp = members.get(i).getValues();
-			temp.add(new Integer (0));
+			temp.add(new Integer (1));
 			members.get(i).setValues(temp);
 		}
 		numFields++;
@@ -101,7 +128,7 @@ class Pool
 		}
 		ArrayList<Integer> values = new ArrayList<Integer>();
 		for (int i = 0; i < numFields; i++)
-			values.add(new Integer (0));
+			values.add(new Integer (1));
 		members.add(new Member (name, values));
 		numMembers++;
 		return true;
@@ -134,7 +161,12 @@ class Pool
 			out.println();
 			for (int j = 0; j < members.size(); j++)
 			{
-				out.println(members.get(j).toString());
+				out.print(members.get(j).toString());
+				for (int i = 0; i < fields.size(); i++)
+				{
+					out.print(";;" + members.get(j).getValueAtLocation(i));
+				}
+				out.println();
 			}
 			out.close();
 		}
@@ -169,7 +201,6 @@ class Pool
 					}
 					catch (Exception e)
 					{
-						System.out.println("You are a n00bc8ke");
 						// Error message
 					}
 				}
