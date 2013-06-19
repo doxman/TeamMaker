@@ -3,6 +3,7 @@ import java.awt.event.*;
 import java.awt.print.*;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class Main implements ActionListener {
 
@@ -132,7 +133,7 @@ public class Main implements ActionListener {
 		scrollPane = new JScrollPane(current);
 		current.add(new JLabel("Name"));
 		scrollLayout.putConstraint(SpringLayout.WEST, current.getComponent(0),
-				5, SpringLayout.WEST, current);
+				140, SpringLayout.WEST, current);
 		scrollLayout.putConstraint(SpringLayout.NORTH, current.getComponent(0),
 				5, SpringLayout.NORTH, current);
 		current.setPreferredSize(new Dimension(900, 230));
@@ -222,6 +223,7 @@ public class Main implements ActionListener {
 			}
 			JButton jb = new JButton (s);
 			jb.addActionListener(this);
+			jb.setPreferredSize(new Dimension(300, 25));
 			current.add(jb, pool.getNumFields());
 			scrollLayout.putConstraint(SpringLayout.WEST,
 					current.getComponent(pool.getNumFields()),
@@ -237,7 +239,7 @@ public class Main implements ActionListener {
 				scrollLayout.putConstraint(
 						SpringLayout.WEST,
 						current.getComponent((i + 2) * pool.getNumFields()
-								+ (i + 1)), 300 * pool.getNumFields() + 5,
+								+ (i + 1)), 300 * pool.getNumFields() + 140,
 						SpringLayout.WEST, current);
 				scrollLayout.putConstraint(
 						SpringLayout.NORTH,
@@ -293,6 +295,7 @@ public class Main implements ActionListener {
 
 			JButton jb = new JButton(s);
 			jb.addActionListener(this);
+			jb.setPreferredSize(new Dimension(300, 25));
 			current.add(jb);
 			scrollLayout.putConstraint(SpringLayout.WEST,
 					current.getComponent(current.getComponentCount() - 1), 5,
@@ -308,7 +311,7 @@ public class Main implements ActionListener {
 				current.add(temp);
 				scrollLayout.putConstraint(SpringLayout.WEST,
 						current.getComponent(current.getComponentCount() - 1),
-						300 * (i + 1) + 5, SpringLayout.WEST, current);
+						300 * (i + 1) + 140, SpringLayout.WEST, current);
 				scrollLayout.putConstraint(SpringLayout.NORTH,
 						current.getComponent(current.getComponentCount() - 1),
 						25 * pool.getNumMembers() + 5, SpringLayout.NORTH,
@@ -407,7 +410,7 @@ public class Main implements ActionListener {
 							scrollLayout.putConstraint(SpringLayout.WEST,
 									current.getComponent(current
 											.getComponentCount() - 1),
-									300 * (k + 1) + 5, SpringLayout.WEST,
+									300 * (k + 1) + 140, SpringLayout.WEST,
 									current);
 							scrollLayout.putConstraint(SpringLayout.NORTH,
 									current.getComponent(current
@@ -424,8 +427,9 @@ public class Main implements ActionListener {
 				}
 			}
 		} else if (e.getSource() == printButton) {
-			try {
-				teamTable.print();
+			try 
+			{
+				teamTable.print(JTable.PrintMode.NORMAL);
 			} catch (PrinterException x) {
 				// Error message
 			}
@@ -520,17 +524,31 @@ public class Main implements ActionListener {
 			teamWindow = new TeamWindow(window, true);
 			printButton = new JButton("Print Teams");
 			printButton.addActionListener(this);
-			teamWindow.setLayout(new BoxLayout(teamWindow.getContentPane(),
-					BoxLayout.Y_AXIS));
+			DefaultTableModel model = new DefaultTableModel();
+	        for (int i = 0; i < numTeams; i++) {
+	            model.addColumn("Team " + (i + 1));
+	        }
+	        for (int i = 0; i < largestTeam; i++)
+	        {
+	            Vector<Object> row = new Vector<Object>();
+	            for (int j = 0; j < numTeams; j++)
+	            {
+	                row.add(teamMembers[i][j]);
+	            }
+	            model.addRow(row);
+	        }
 			JPanel teamPanel = new JPanel(new GridLayout(1, 0));
-			teamTable = new JTable(teamMembers, teams.toArray());
-			teamTable.setPreferredSize(new Dimension(teamTable.getColumnCount() * 300, teamTable.getRowCount() * 16));
+			teamTable = new JTable(model);
+			teamTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+			for (int i = 0; i < numTeams; i++)
+				teamTable.getColumnModel().getColumn(i).setPreferredWidth(230);
 			JScrollPane teamScroll = new JScrollPane(teamTable);
-			teamScroll.setPreferredSize(new Dimension (teamTable.getColumnCount() * 300, (teamTable.getRowCount() + 1) * 16));
+			teamScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+			teamScroll.setPreferredSize(new Dimension (teamTable.getColumnCount() * 230, teamTable.getRowCount() * 16));
 			teamPanel.add(teamScroll);
-			teamWindow.add(teamPanel);
-			teamWindow.add(printButton);
-			teamWindow.pack();
+			teamWindow.add(teamPanel, BorderLayout.CENTER);
+			teamWindow.add(printButton, BorderLayout.SOUTH);
+			teamWindow.setSize(920, 500);
 			teamWindow.setVisible(true);
 		}
 		else if (e.getActionCommand().equals("Remove") && e.getSource() == modifyField.getContentPane().getComponent(0))
@@ -541,7 +559,8 @@ public class Main implements ActionListener {
 				for (int i = 0; i < pool.getNumMembers() + 1; i++) {
 					current.remove(i * (pool.getNumFields() + 1) + (loc + 1));
 					if (loc != pool.getNumFields()) {
-						for (int j = loc; j < pool.getNumFields(); j++) {
+						for (int j = loc; j < pool.getNumFields(); j++)
+						{
 							scrollLayout.putConstraint(
 									SpringLayout.WEST,
 									current.getComponent(i
@@ -561,7 +580,8 @@ public class Main implements ActionListener {
 				for (int i = 0; i < pool.getNumFields() + 1; i++) {
 					current.remove((loc + 1) * (pool.getNumFields() + 1));
 					if (loc != pool.getNumMembers()) {
-						for (int j = loc; j < pool.getNumMembers(); j++) {
+						for (int j = loc; j < pool.getNumMembers(); j++)
+						{
 							scrollLayout.putConstraint(
 									SpringLayout.NORTH,
 									current.getComponent((j + 2)
