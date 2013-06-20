@@ -194,6 +194,12 @@ class Pool
 				out.print("" + (char)178 + fields.get(i).getUpperLimit());
 			}
 			out.println();
+			out.print("BOOLEAN?");
+			for (int i = 0; i < fields.size(); i++)
+			{
+				out.print("" + (char)178 + fields.get(i).isBoolean());
+			}
+			out.println();
 			for (int j = 0; j < members.size(); j++)
 			{
 				out.print(members.get(j).toString());
@@ -226,9 +232,13 @@ class Pool
 			tempArr = in.readLine().split("" + (char)178);
 			ArrayList<String> upperLimits = new ArrayList<String> (Arrays.asList(tempArr));
 			upperLimits.remove(0);
+			tempArr = in.readLine().split("" + (char)178);
+			ArrayList<String> booleans = new ArrayList<String> (Arrays.asList(tempArr));
+			booleans.remove(0);
 			fields = new ArrayList<Field> ();
 			for (int i = 0; i < numFields; i++)
-				fields.add(new Field(fieldNames.get(i), Integer.parseInt(lowerLimits.get(i)), Integer.parseInt(upperLimits.get(i))));
+				fields.add(new Field(fieldNames.get(i), Integer.parseInt(lowerLimits.get(i)), 
+									 Integer.parseInt(upperLimits.get(i)), Boolean.parseBoolean(booleans.get(i))));
 			numMembers = 0;
 			members = new ArrayList<Member>();
 			String buffer = in.readLine();

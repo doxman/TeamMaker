@@ -29,8 +29,13 @@ public class Main implements ActionListener {
 	private String currentField;
 	private boolean isField;
 	private int currentLoc;
+	
+	private boolean isBoolean;
+	private int lastLower;
+	private int lastUpper;
 
-	private void storeValues() {
+	private void storeValues()
+	{
 		for (int i = 1; i < pool.getNumFields() + 1; i++)
 		{
 			String name = ((JButton)current.getComponent(i)).getText();
@@ -46,10 +51,24 @@ public class Main implements ActionListener {
 				String temp = ((String) ((JSpinner) current.getComponent(i
 						* (pool.getNumFields() + 1) + j)).getValue());
 				int num;
-				try {
-					num = new Integer(temp);
-				} catch (Exception x) {
+				if (temp == "True")
+				{
 					num = 1;
+				}
+				else if (temp == "False")
+				{
+					num = 0;
+				}
+				else
+				{
+					try
+					{
+						num = new Integer(temp);
+					}
+					catch (Exception x)
+					{
+						num = 0;
+					}
 				}
 				pool.getMember(i - 1).setValueAtLocation(j - 1, num);
 			}
@@ -108,7 +127,7 @@ public class Main implements ActionListener {
 		return true;
 	}
 
-	private Main() {		
+	private Main() {
 		window = new JFrame("Team Maker");
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setLayout(new BoxLayout(window.getContentPane(),
@@ -123,7 +142,10 @@ public class Main implements ActionListener {
 
 		save.addActionListener(this);
 		load.addActionListener(this);
-
+		
+		save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		load.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		
 		menu.add(save);
 		menu.add(load);
 		menuBar.add(menu);
@@ -134,11 +156,19 @@ public class Main implements ActionListener {
 		JButton removeFieldButton = new JButton("Remove Field");
 		JButton addMemberButton = new JButton("Add Member");
 		JButton removeMemberButton = new JButton("Remove Member");
+		JButton quickFieldButton = new JButton ("Add Field (quick)");
 
-		addMemberButton.addActionListener(this);
-		removeMemberButton.addActionListener(this);
 		addFieldButton.addActionListener(this);
 		removeFieldButton.addActionListener(this);
+		addMemberButton.addActionListener(this);
+		removeMemberButton.addActionListener(this);
+		quickFieldButton.addActionListener(this);
+		
+		addFieldButton.setMnemonic(KeyEvent.VK_B);
+		removeFieldButton.setMnemonic(KeyEvent.VK_Q);
+		addMemberButton.setMnemonic(KeyEvent.VK_M);
+		removeMemberButton.setMnemonic(KeyEvent.VK_W);
+		quickFieldButton.setMnemonic(KeyEvent.VK_N);
 
 		current = new JPanel();
 		scrollLayout = new SpringLayout();
@@ -155,10 +185,12 @@ public class Main implements ActionListener {
 		buttonPane.add(removeFieldButton);
 		buttonPane.add(addMemberButton);
 		buttonPane.add(removeMemberButton);
+		buttonPane.add(quickFieldButton);
 		buttonPane.setVisible(true);
 
 		JButton generateTeamsButton = new JButton("Generate Teams");
 		generateTeamsButton.addActionListener(this);
+		generateTeamsButton.setMnemonic(KeyEvent.VK_G);
 
 		String[] temp = new String[98];
 		for (int i = 2; i < 100; i++) {
@@ -183,10 +215,15 @@ public class Main implements ActionListener {
 		window.add(generatePane);
 		window.setVisible(true);
 		window.pack();
+		
+		isBoolean = false;
+		lastLower = 0;
+		lastUpper = 10;
 	}
 
 	@SuppressWarnings("unchecked")
-	private ArrayList<Member> randomizePool() {
+	private ArrayList<Member> randomizePool()
+	{
 		ArrayList<Member> initial = (ArrayList<Member>) pool.getMembers()
 				.clone();
 		ArrayList<Member> ret = new ArrayList<Member>();
@@ -197,130 +234,261 @@ public class Main implements ActionListener {
 		}
 		return ret;
 	}
+	
+	private void addField ()
+	{
+		String s = (String) JOptionPane.showInputDialog(window,
+				"Please enter the name of the new field:\n",
+				"Enter field name", JOptionPane.PLAIN_MESSAGE, null, null,
+				"");
+		if (!checkAdd(s))
+			return;
+
+		boolean attempt = pool.addField(s);
+		if (!attempt) {
+			JOptionPane.showMessageDialog(window,
+					"Duplicate fields are not allowed!");
+			return;
+		}
+		int lowerLimit = 0, upperLimit = 10;
+		int num = JOptionPane.showOptionDialog(window,
+				"What type of field would you like?",
+				"Choose field type",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.PLAIN_MESSAGE,
+				null, new Object [] {"Numeric", "True/False"},
+				"Numeric");
+		if (num == JOptionPane.CLOSED_OPTION)
+		{
+			pool.removeField(s);
+			return;
+		}
+		else if (num == JOptionPane.YES_OPTION)
+		{
+			boolean proper = false;
+			while (proper != true)
+			{
+				String t = (String) JOptionPane.showInputDialog(window, 
+					"Please enter the lower limit for the field:\n",
+					"Enter lower limit", JOptionPane.PLAIN_MESSAGE,
+					null, null, "" + lastLower);
+				try
+				{
+					if (t == null)
+					{
+						pool.removeField(s);
+						return;
+					}
+					lowerLimit = Integer.parseInt(t);
+					if (lowerLimit >= 0)
+						proper = true;
+					else
+						JOptionPane.showMessageDialog(window,
+							"Please enter a positive integer!");
+				}
+				catch (Exception x)
+				{
+					JOptionPane.showMessageDialog(window,
+							"Please enter a positive integer!");
+				}
+			}
+			proper = false;
+			while (proper != true)
+			{
+				String t = (String) JOptionPane.showInputDialog(window, 
+						"Please enter the upper limit for the field:\n",
+						"Enter upper limit", JOptionPane.PLAIN_MESSAGE,
+						null, null, "" + lastUpper);
+				try
+				{
+					if (t == null)
+					{
+						pool.removeField(s);
+						return;
+					}
+					upperLimit = Integer.parseInt(t);
+					if (upperLimit > lowerLimit)
+						proper = true;
+					else
+						JOptionPane.showMessageDialog(window, 
+								"Upper limit must be greater than lower limit!");
+				}
+				catch (Exception x)
+				{
+					JOptionPane.showMessageDialog(window,
+							"Please enter a positive integer!");
+				}
+			}
+			isBoolean = false;
+		}
+		else
+		{
+			lowerLimit = 0;
+			upperLimit = 1;
+			isBoolean = true;
+		}
+		lastLower = lowerLimit;
+		lastUpper = upperLimit;
+		
+		pool.getField(pool.getNumFields() - 1).setLimits(lowerLimit, upperLimit);
+		if (isBoolean)
+			pool.getField(pool.getNumFields() - 1).setBoolean(true);
+		
+		JButton jb = new JButton (s);
+		jb.addActionListener(this);
+		jb.setPreferredSize(new Dimension(300, 25));
+		current.add(jb, pool.getNumFields());
+		scrollLayout.putConstraint(SpringLayout.WEST,
+				current.getComponent(pool.getNumFields()),
+				300 * pool.getNumFields() + 5, SpringLayout.WEST, current);
+		scrollLayout.putConstraint(SpringLayout.NORTH,
+				current.getComponent(pool.getNumFields()), 5,
+				SpringLayout.NORTH, current);
+		for (int i = 0; i < pool.getNumMembers(); i++) {
+			String [] options = new String[upperLimit - lowerLimit + 1];
+			for (int j = 0; j < options.length; j++)
+			{
+				options[j] = "" + (lowerLimit + j);
+			}
+			if (isBoolean)
+			{
+				options[0] = "True";
+				options[1] = "False";
+			}
+			JSpinner temp = new JSpinner(new SpinnerListModel(options));
+			temp.setPreferredSize(new Dimension(75, 25));
+			current.add(temp, (i + 2) * pool.getNumFields() + (i + 1));
+			scrollLayout.putConstraint(
+					SpringLayout.WEST,
+					current.getComponent((i + 2) * pool.getNumFields()
+							+ (i + 1)), 300 * pool.getNumFields() + 123,
+					SpringLayout.WEST, current);
+			scrollLayout.putConstraint(
+					SpringLayout.NORTH,
+					current.getComponent((i + 2) * pool.getNumFields()
+							+ (i + 1)), 25 * (i + 1) + 5,
+					SpringLayout.NORTH, current);
+		}
+		if (pool.getNumFields() > 2)
+			current.setPreferredSize(new Dimension(
+					current.getWidth() + 300, current.getHeight()));
+	}
+	
+	private void addField (boolean isBoolean, int lowerLimit, int upperLimit)
+	{
+		String s = (String) JOptionPane.showInputDialog(window,
+				"Please enter the name of the new field:\n",
+				"Enter field name", JOptionPane.PLAIN_MESSAGE, null, null,
+				"");
+		if (!checkAdd(s))
+			return;
+
+		boolean attempt = pool.addField(s);
+		if (!attempt) {
+			JOptionPane.showMessageDialog(window,
+					"Duplicate fields are not allowed!");
+			return;
+		}
+		pool.getField(pool.getNumFields() - 1).setLimits(lowerLimit, upperLimit);
+		if (isBoolean)
+			pool.getField(pool.getNumFields() - 1).setBoolean(true);
+		JButton jb = new JButton (s);
+		jb.addActionListener(this);
+		jb.setPreferredSize(new Dimension(300, 25));
+		current.add(jb, pool.getNumFields());
+		scrollLayout.putConstraint(SpringLayout.WEST,
+				current.getComponent(pool.getNumFields()),
+				300 * pool.getNumFields() + 5, SpringLayout.WEST, current);
+		scrollLayout.putConstraint(SpringLayout.NORTH,
+				current.getComponent(pool.getNumFields()), 5,
+				SpringLayout.NORTH, current);
+		for (int i = 0; i < pool.getNumMembers(); i++) {
+			String [] options = new String[upperLimit - lowerLimit + 1];
+			for (int j = 0; j < options.length; j++)
+			{
+				options[j] = "" + (lowerLimit + j);
+			}
+			if (isBoolean)
+			{
+				options [0] = "True";
+				options [1] = "False";
+			}
+			JSpinner temp = new JSpinner(new SpinnerListModel(options));
+			temp.setPreferredSize(new Dimension(75, 25));
+			current.add(temp, (i + 2) * pool.getNumFields() + (i + 1));
+			scrollLayout.putConstraint(
+					SpringLayout.WEST,
+					current.getComponent((i + 2) * pool.getNumFields()
+							+ (i + 1)), 300 * pool.getNumFields() + 123,
+					SpringLayout.WEST, current);
+			scrollLayout.putConstraint(
+					SpringLayout.NORTH,
+					current.getComponent((i + 2) * pool.getNumFields()
+							+ (i + 1)), 25 * (i + 1) + 5,
+					SpringLayout.NORTH, current);
+		}
+		if (pool.getNumFields() > 2)
+			current.setPreferredSize(new Dimension(
+					current.getWidth() + 300, current.getHeight()));
+	}
+	
+	private void addMember ()
+	{
+		String s = ((String) JOptionPane.showInputDialog(window,
+				"Please enter the name of the new member:\n",
+				"Enter member name", JOptionPane.PLAIN_MESSAGE, null, null,
+				""));
+		if (!checkAdd(s))
+			return;
+
+		boolean attempt = pool.addMember(s);
+		if (!attempt) {
+			JOptionPane.showMessageDialog(window,
+					"Duplicate members are not allowed!");
+			return;
+		}
+
+		JButton jb = new JButton(s);
+		jb.addActionListener(this);
+		jb.setPreferredSize(new Dimension(300, 25));
+		current.add(jb);
+		scrollLayout.putConstraint(SpringLayout.WEST,
+				current.getComponent(current.getComponentCount() - 1), 5,
+				SpringLayout.WEST, current);
+		scrollLayout.putConstraint(SpringLayout.NORTH,
+				current.getComponent(current.getComponentCount() - 1),
+				25 * pool.getNumMembers() + 5, SpringLayout.NORTH, current);
+
+		for (int i = 0; i < pool.getNumFields(); i++) {
+			String [] options = new String [pool.getField(i).getUpperLimit() - pool.getField(i).getLowerLimit() + 1];
+			for (int j = 0; j < options.length; j++)
+			{
+				options[j] = "" + (pool.getField(i).getLowerLimit() + j);
+			}
+			if (pool.getField(i).isBoolean())
+			{
+				options[0] = "True";
+				options[1] = "False";
+			}
+			JSpinner temp = new JSpinner(new SpinnerListModel(options));
+			temp.setPreferredSize(new Dimension(75, 25));
+			current.add(temp);
+			scrollLayout.putConstraint(SpringLayout.WEST,
+					current.getComponent(current.getComponentCount() - 1),
+					300 * (i + 1) + 123, SpringLayout.WEST, current);
+			scrollLayout.putConstraint(SpringLayout.NORTH,
+					current.getComponent(current.getComponentCount() - 1),
+					25 * pool.getNumMembers() + 5, SpringLayout.NORTH,
+					current);
+		}
+		if (pool.getNumMembers() > 8)
+			current.setPreferredSize(new Dimension(current.getWidth(),
+					current.getHeight() + 25));
+	}
 
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == buttonPane.getComponent(0)) {
-			String s = (String) JOptionPane.showInputDialog(window,
-					"Please enter the name of the new field:\n",
-					"Enter field name", JOptionPane.PLAIN_MESSAGE, null, null,
-					"");
-			if (!checkAdd(s))
-				return;
-
-			boolean attempt = pool.addField(s);
-			if (!attempt) {
-				JOptionPane.showMessageDialog(window,
-						"Duplicate fields are not allowed!");
-				return;
-			}
-			int lowerLimit = 0, upperLimit = 10;
-			int num = JOptionPane.showOptionDialog(window,
-					"What type of field would you like?",
-					"Choose field type",
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.PLAIN_MESSAGE,
-					null, new Object [] {"Numeric", "True/False"},
-					"Numeric");
-			if (num == JOptionPane.CLOSED_OPTION)
-			{
-				pool.removeField(s);
-				return;
-			}
-			else if (num == JOptionPane.YES_OPTION)
-			{
-				boolean proper = false;
-				while (proper != true)
-				{
-					String t = (String) JOptionPane.showInputDialog(window, 
-						"Please enter the lower limit for the field:\n",
-						"Enter lower limit", JOptionPane.PLAIN_MESSAGE,
-						null, null, "0");
-					try
-					{
-						if (t == null)
-						{
-							pool.removeField(s);
-							return;
-						}	
-						lowerLimit = Integer.parseInt(t);
-						proper = true;
-					}
-					catch (Exception x)
-					{
-						JOptionPane.showMessageDialog(window,
-								"Please enter an integer!");
-					}
-				}
-				proper = false;
-				while (proper != true)
-				{
-					String t = (String) JOptionPane.showInputDialog(window, 
-							"Please enter the upper limit for the field:\n",
-							"Enter upper limit", JOptionPane.PLAIN_MESSAGE,
-							null, null, "10");
-					try
-					{
-						if (t == null)
-						{
-							pool.removeField(s);
-							return;
-						}
-						upperLimit = Integer.parseInt(t);
-						proper = true;
-						if (upperLimit < lowerLimit)
-						{
-							JOptionPane.showMessageDialog(window, 
-									"Upper limit must be at least as large as lower limit!");
-							proper = false;
-						}
-					}
-					catch (Exception x)
-					{
-						JOptionPane.showMessageDialog(window,
-								"Please enter an integer!");
-					}
-				}
-			}
-			else
-			{
-				lowerLimit = 0;
-				upperLimit = 1;
-			}
-			pool.getField(pool.getNumFields() - 1).setLimits(lowerLimit, upperLimit);
-			
-			JButton jb = new JButton (s);
-			jb.addActionListener(this);
-			jb.setPreferredSize(new Dimension(300, 25));
-			current.add(jb, pool.getNumFields());
-			scrollLayout.putConstraint(SpringLayout.WEST,
-					current.getComponent(pool.getNumFields()),
-					300 * pool.getNumFields() + 5, SpringLayout.WEST, current);
-			scrollLayout.putConstraint(SpringLayout.NORTH,
-					current.getComponent(pool.getNumFields()), 5,
-					SpringLayout.NORTH, current);
-			for (int i = 0; i < pool.getNumMembers(); i++) {
-				String [] options = new String[upperLimit - lowerLimit + 1];
-				for (int j = lowerLimit; j <= upperLimit; j++)
-				{
-					options[j - lowerLimit] = "" + (lowerLimit + j);
-				}
-				JSpinner temp = new JSpinner(new SpinnerListModel(options));
-				temp.setPreferredSize(new Dimension(40, 25));
-				current.add(temp, (i + 2) * pool.getNumFields() + (i + 1));
-				scrollLayout.putConstraint(
-						SpringLayout.WEST,
-						current.getComponent((i + 2) * pool.getNumFields()
-								+ (i + 1)), 300 * pool.getNumFields() + 140,
-						SpringLayout.WEST, current);
-				scrollLayout.putConstraint(
-						SpringLayout.NORTH,
-						current.getComponent((i + 2) * pool.getNumFields()
-								+ (i + 1)), 25 * (i + 1) + 5,
-						SpringLayout.NORTH, current);
-			}
-			if (pool.getNumFields() > 2)
-				current.setPreferredSize(new Dimension(
-						current.getWidth() + 300, current.getHeight()));
+			addField();
 		} else if (e.getSource() == buttonPane.getComponent(1)) {
 			String s = ((String) JOptionPane.showInputDialog(window,
 					"Please enter the name of the field to be removed:\n",
@@ -350,51 +518,7 @@ public class Main implements ActionListener {
 				current.setPreferredSize(new Dimension(
 						current.getWidth() - 300, current.getHeight()));
 		} else if (e.getSource() == buttonPane.getComponent(2)) {
-			String s = ((String) JOptionPane.showInputDialog(window,
-					"Please enter the name of the new member:\n",
-					"Enter member name", JOptionPane.PLAIN_MESSAGE, null, null,
-					""));
-			if (!checkAdd(s))
-				return;
-
-			boolean attempt = pool.addMember(s);
-			if (!attempt) {
-				JOptionPane.showMessageDialog(window,
-						"Duplicate members are not allowed!");
-				return;
-			}
-
-			JButton jb = new JButton(s);
-			jb.addActionListener(this);
-			jb.setPreferredSize(new Dimension(300, 25));
-			current.add(jb);
-			scrollLayout.putConstraint(SpringLayout.WEST,
-					current.getComponent(current.getComponentCount() - 1), 5,
-					SpringLayout.WEST, current);
-			scrollLayout.putConstraint(SpringLayout.NORTH,
-					current.getComponent(current.getComponentCount() - 1),
-					25 * pool.getNumMembers() + 5, SpringLayout.NORTH, current);
-
-			for (int i = 0; i < pool.getNumFields(); i++) {
-				String [] options = new String [pool.getField(i).getUpperLimit() - pool.getField(i).getLowerLimit() + 1];
-				for (int j = 0; j < options.length; j++)
-				{
-					options[j] = "" + (pool.getField(i).getLowerLimit() + j);
-				}
-				JSpinner temp = new JSpinner(new SpinnerListModel(options));
-				temp.setPreferredSize(new Dimension(40, 25));
-				current.add(temp);
-				scrollLayout.putConstraint(SpringLayout.WEST,
-						current.getComponent(current.getComponentCount() - 1),
-						300 * (i + 1) + 140, SpringLayout.WEST, current);
-				scrollLayout.putConstraint(SpringLayout.NORTH,
-						current.getComponent(current.getComponentCount() - 1),
-						25 * pool.getNumMembers() + 5, SpringLayout.NORTH,
-						current);
-			}
-			if (pool.getNumMembers() > 8)
-				current.setPreferredSize(new Dimension(current.getWidth(),
-						current.getHeight() + 25));
+			addMember();
 		} else if (e.getSource() == buttonPane.getComponent(3)) {
 			String s = ((String) JOptionPane.showInputDialog(window,
 					"Please enter the name of the member to be removed:\n",
@@ -424,7 +548,12 @@ public class Main implements ActionListener {
 			if (pool.getNumMembers() > 7)
 				current.setPreferredSize(new Dimension(current.getWidth(),
 						current.getHeight() - 25));
-		} else if (e.getSource() == menu.getItem(0)) {
+		} 
+		else if (e.getSource() == buttonPane.getComponent(4))
+		{
+			addField(isBoolean, lastLower, lastUpper);
+		}
+		else if (e.getSource() == menu.getItem(0)) {
 			storeValues();
 			String fileName;
 			int ret = fileChooser.showSaveDialog(window);
@@ -488,14 +617,27 @@ public class Main implements ActionListener {
 							{
 								options[i] = "" + (pool.getField(k).getLowerLimit() + i);
 							}
+							if(pool.getField(k).isBoolean())
+							{
+								options[0] = "True";
+								options[1] = "False";
+							}
 							JSpinner spin = new JSpinner(new SpinnerListModel(options));
-							spin.setPreferredSize(new Dimension(40, 25));
-							spin.setValue("" + val);
+							spin.setPreferredSize(new Dimension(75, 25));
+							if (!pool.getField(k).isBoolean())
+								spin.setValue("" + val);
+							else
+							{
+								if(val == 1)
+									spin.setValue("True");
+								else
+									spin.setValue("False");
+							}
 							current.add(spin);
 							scrollLayout.putConstraint(SpringLayout.WEST,
 									current.getComponent(current
 											.getComponentCount() - 1),
-									300 * (k + 1) + 140, SpringLayout.WEST,
+									300 * (k + 1) + 123, SpringLayout.WEST,
 									current);
 							scrollLayout.putConstraint(SpringLayout.NORTH,
 									current.getComponent(current
@@ -688,7 +830,7 @@ public class Main implements ActionListener {
 			String s = ((String) JOptionPane.showInputDialog(window,
 					"Please enter the new name:\n",
 					"Enter new name", JOptionPane.PLAIN_MESSAGE, null, null,
-					""));
+					currentField));
 			if (!checkAdd(s))
 			{
 				return;
@@ -752,13 +894,15 @@ public class Main implements ActionListener {
 			}
 			modifyField = new JDialog (window, currentField, true);
 			modifyField.setLayout(new FlowLayout());
+			modifyField.setLocationRelativeTo(window);
 			JButton removeButton = new JButton ("Remove");
 			JButton changeButton = new JButton ("Change");
 			removeButton.addActionListener(this);
 			changeButton.addActionListener(this);
 			modifyField.add(removeButton);
 			modifyField.add(changeButton);
-			modifyField.pack();
+			modifyField.setSize(new Dimension (200, 75));
+			modifyField.setResizable (false);
 			modifyField.setVisible(true);
 		}
 		current.revalidate();
