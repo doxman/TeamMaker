@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.print.*;
+import java.io.IOException;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -33,7 +34,7 @@ public class Main implements ActionListener {
 		for (int i = 1; i < pool.getNumFields() + 1; i++)
 		{
 			String name = ((JButton)current.getComponent(i)).getText();
-			pool.setField(i - 1, name);
+			pool.setFieldName(i - 1, name);
 		}
 		for (int i = 1; i < pool.getNumMembers() + 1; i++)
 		{
@@ -48,7 +49,6 @@ public class Main implements ActionListener {
 				try {
 					num = new Integer(temp);
 				} catch (Exception x) {
-					// Error message
 					num = 1;
 				}
 				pool.getMember(i - 1).setValueAtLocation(j - 1, num);
@@ -74,6 +74,13 @@ public class Main implements ActionListener {
 					"The name was too long!");
 			return false;
 		}
+		else if (s.indexOf(178) != -1)
+		{
+			JOptionPane.showMessageDialog(window, 
+					"Sorry, this character is reserved by the program.\n" +
+					"I'm sure you have plenty of other options though...");
+			return false;
+		}
 		return true;
 	}
 	
@@ -91,17 +98,23 @@ public class Main implements ActionListener {
 			JOptionPane.showMessageDialog(window,
 					"Not a possible name!");
 			return false;
+		}else if (s.indexOf(178) != -1)
+		{
+			JOptionPane.showMessageDialog(window, 
+					"There is no way you could possibly have this name!\n" +
+					"Seriously, have you been looking at my code or something...?");
+			return false;
 		}
 		return true;
 	}
 
 	private Main() {
-		pool = new Pool();
-
 		window = new JFrame("Team Maker");
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setLayout(new BoxLayout(window.getContentPane(),
 				BoxLayout.Y_AXIS));
+		
+		pool = new Pool(window);
 
 		menuBar = new JMenuBar();
 		menu = new JMenu("File");
@@ -172,27 +185,6 @@ public class Main implements ActionListener {
 		window.pack();
 	}
 
-	// Returns true if first argument precedes the second.
-	// Returns false otherwise.
-	/*
-	 * private boolean compareMembers (Member arg1, Member arg2) { boolean flag
-	 * = false; int numFields = pool.getNumFields(); for (int i = 0; i <
-	 * numFields; i++) { if (arg1.getValueAtLocation(i) <
-	 * arg2.getValueAtLocation(i)) { flag = true; break; } if
-	 * (arg1.getValueAtLocation(i) > arg2.getValueAtLocation(i)) break; } return
-	 * flag; }
-	 */
-
-	/*
-	 * private ArrayList<Member> sortPool () { int numMembers =
-	 * pool.getNumMembers(); if (numMembers == 0) return null; ArrayList<Member>
-	 * ret = new ArrayList<Member> (); ret.add(pool.getMember(0)); for (int i =
-	 * 1; i < numMembers; i++) { Member temp = pool.getMember (i); int retSize =
-	 * ret.size(); for (int j = 0; j < retSize; j++) { if (compareMembers (temp,
-	 * ret.get(j))) { ret.add(j, temp); break; } } if (ret.size() == retSize)
-	 * ret.add(temp); } return ret; }
-	 */
-
 	@SuppressWarnings("unchecked")
 	private ArrayList<Member> randomizePool() {
 		ArrayList<Member> initial = (ArrayList<Member>) pool.getMembers()
@@ -208,10 +200,10 @@ public class Main implements ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == buttonPane.getComponent(0)) {
-			String s = ((String) JOptionPane.showInputDialog(window,
+			String s = (String) JOptionPane.showInputDialog(window,
 					"Please enter the name of the new field:\n",
 					"Enter field name", JOptionPane.PLAIN_MESSAGE, null, null,
-					""));
+					"");
 			if (!checkAdd(s))
 				return;
 
@@ -221,6 +213,81 @@ public class Main implements ActionListener {
 						"Duplicate fields are not allowed!");
 				return;
 			}
+			int lowerLimit = 0, upperLimit = 10;
+			int num = JOptionPane.showOptionDialog(window,
+					"What type of field would you like?",
+					"Choose field type",
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.PLAIN_MESSAGE,
+					null, new Object [] {"Numeric", "True/False"},
+					"Numeric");
+			if (num == JOptionPane.CLOSED_OPTION)
+			{
+				pool.removeField(s);
+				return;
+			}
+			else if (num == JOptionPane.YES_OPTION)
+			{
+				boolean proper = false;
+				while (proper != true)
+				{
+					String t = (String) JOptionPane.showInputDialog(window, 
+						"Please enter the lower limit for the field:\n",
+						"Enter lower limit", JOptionPane.PLAIN_MESSAGE,
+						null, null, "0");
+					try
+					{
+						if (t == null)
+						{
+							pool.removeField(s);
+							return;
+						}	
+						lowerLimit = Integer.parseInt(t);
+						proper = true;
+					}
+					catch (Exception x)
+					{
+						JOptionPane.showMessageDialog(window,
+								"Please enter an integer!");
+					}
+				}
+				proper = false;
+				while (proper != true)
+				{
+					String t = (String) JOptionPane.showInputDialog(window, 
+							"Please enter the upper limit for the field:\n",
+							"Enter upper limit", JOptionPane.PLAIN_MESSAGE,
+							null, null, "10");
+					try
+					{
+						if (t == null)
+						{
+							pool.removeField(s);
+							return;
+						}
+						upperLimit = Integer.parseInt(t);
+						proper = true;
+						if (upperLimit < lowerLimit)
+						{
+							JOptionPane.showMessageDialog(window, 
+									"Upper limit must be at least as large as lower limit!");
+							proper = false;
+						}
+					}
+					catch (Exception x)
+					{
+						JOptionPane.showMessageDialog(window,
+								"Please enter an integer!");
+					}
+				}
+			}
+			else
+			{
+				lowerLimit = 0;
+				upperLimit = 1;
+			}
+			pool.getField(pool.getNumFields() - 1).setLimits(lowerLimit, upperLimit);
+			
 			JButton jb = new JButton (s);
 			jb.addActionListener(this);
 			jb.setPreferredSize(new Dimension(300, 25));
@@ -232,8 +299,12 @@ public class Main implements ActionListener {
 					current.getComponent(pool.getNumFields()), 5,
 					SpringLayout.NORTH, current);
 			for (int i = 0; i < pool.getNumMembers(); i++) {
-				JSpinner temp = new JSpinner(new SpinnerListModel(new String[] {
-						"1", "2", "3", "4", "5", "6", "7", "8", "9", "10" }));
+				String [] options = new String[upperLimit - lowerLimit + 1];
+				for (int j = lowerLimit; j <= upperLimit; j++)
+				{
+					options[j - lowerLimit] = "" + (lowerLimit + j);
+				}
+				JSpinner temp = new JSpinner(new SpinnerListModel(options));
 				temp.setPreferredSize(new Dimension(40, 25));
 				current.add(temp, (i + 2) * pool.getNumFields() + (i + 1));
 				scrollLayout.putConstraint(
@@ -305,8 +376,12 @@ public class Main implements ActionListener {
 					25 * pool.getNumMembers() + 5, SpringLayout.NORTH, current);
 
 			for (int i = 0; i < pool.getNumFields(); i++) {
-				JSpinner temp = new JSpinner(new SpinnerListModel(new String[] {
-						"1", "2", "3", "4", "5", "6", "7", "8", "9", "10" }));
+				String [] options = new String [pool.getField(i).getUpperLimit() - pool.getField(i).getLowerLimit() + 1];
+				for (int j = 0; j < options.length; j++)
+				{
+					options[j] = "" + (pool.getField(i).getLowerLimit() + j);
+				}
+				JSpinner temp = new JSpinner(new SpinnerListModel(options));
 				temp.setPreferredSize(new Dimension(40, 25));
 				current.add(temp);
 				scrollLayout.putConstraint(SpringLayout.WEST,
@@ -356,19 +431,24 @@ public class Main implements ActionListener {
 			if (ret == JFileChooser.APPROVE_OPTION) {
 				try {
 					fileName = fileChooser.getSelectedFile().getCanonicalPath();
+				} catch (IOException x) {
+					JOptionPane.showMessageDialog(window, "Sorry, something went wrong! The program could not save to this location!");
+					return;
+				}
 					if (fileName.indexOf(".tmkr") == -1)
 						fileName = fileName + ".tmkr";
 					pool.writeToFile(fileName);
-				} catch (Exception x) {
-					// Error message
-				}
 			}
 		} else if (e.getSource() == menu.getItem(1)) {
 			String fileName;
 			int ret = fileChooser.showOpenDialog(window);
 			if (ret == JFileChooser.APPROVE_OPTION) {
-				try {
-					fileName = fileChooser.getSelectedFile().getCanonicalPath();
+					try {
+						fileName = fileChooser.getSelectedFile().getCanonicalPath();
+					} catch (IOException x) {
+						JOptionPane.showMessageDialog(window, "Sorry, something went wrong! The program was could not load from this location!");
+						return;
+					}
 					pool.readFromFile(fileName);
 					current.removeAll();
 					current.add(new JLabel("Name"));
@@ -379,8 +459,9 @@ public class Main implements ActionListener {
 							current.getComponent(0), 5, SpringLayout.NORTH,
 							current);
 					for (int i = 0; i < pool.getNumFields(); i++) {
-						JButton temp = new JButton(pool.getField(i));
+						JButton temp = new JButton(pool.getField(i).toString());
 						temp.addActionListener(this);
+						temp.setPreferredSize(new Dimension(300, 25));
 						current.add(temp);
 						scrollLayout.putConstraint(SpringLayout.WEST,
 								current.getComponent(i + 1), 300 * (i + 1) + 5,
@@ -391,6 +472,7 @@ public class Main implements ActionListener {
 					}
 					for (int j = 0; j < pool.getNumMembers(); j++) {
 						JButton temp = new JButton(pool.getMember(j).getName());
+						temp.setPreferredSize(new Dimension(300, 25));
 						temp.addActionListener(this);
 						current.add(temp);
 						scrollLayout.putConstraint(SpringLayout.WEST, current
@@ -401,9 +483,12 @@ public class Main implements ActionListener {
 								25 * (j + 1) + 5, SpringLayout.NORTH, current);
 						for (int k = 0; k < pool.getNumFields(); k++) {
 							int val = pool.getMember(j).getValueAtLocation(k);
-							JSpinner spin = new JSpinner(new SpinnerListModel(
-									new String[] { "1", "2", "3", "4", "5",
-											"6", "7", "8", "9", "10" }));
+							String [] options = new String [pool.getField(k).getUpperLimit() - pool.getField(k).getLowerLimit() + 1];
+							for (int i = 0; i < options.length; i++)
+							{
+								options[i] = "" + (pool.getField(k).getLowerLimit() + i);
+							}
+							JSpinner spin = new JSpinner(new SpinnerListModel(options));
 							spin.setPreferredSize(new Dimension(40, 25));
 							spin.setValue("" + val);
 							current.add(spin);
@@ -422,16 +507,13 @@ public class Main implements ActionListener {
 					int width = Math.max(715, 300 * (pool.getNumFields() + 1));
 					int height = Math.max(230, 25 * (pool.getNumMembers() + 1));
 					current.setPreferredSize(new Dimension(width, height));
-				} catch (Exception x) {
-					// Error message
-				}
 			}
 		} else if (e.getSource() == printButton) {
 			try 
 			{
 				teamTable.print(JTable.PrintMode.NORMAL);
 			} catch (PrinterException x) {
-				// Error message
+				JOptionPane.showMessageDialog(window, "Sorry, something went wrong! The program could not print the file!");
 			}
 		} else if (e.getSource() == generatePane.getComponent(0)){
 			storeValues();
@@ -447,6 +529,11 @@ public class Main implements ActionListener {
 			}
 			Integer tempNum = new Integer((String) numTeamspinner.getValue());
 			int numTeams = tempNum.intValue();
+			if (numTeams > pool.getNumMembers())
+			{
+				JOptionPane.showMessageDialog(window, "You can't have more teams than members!");
+				return;
+			}
 			ArrayList<Member> sorted = randomizePool();
 			int numFields = pool.getNumFields();
 			int numMembers = pool.getNumMembers();
@@ -608,7 +695,7 @@ public class Main implements ActionListener {
 			}
 			if (isField)
 			{
-				boolean attempt = pool.setField(currentLoc, s);
+				boolean attempt = pool.setFieldName(currentLoc, s);
 				if (!attempt) {
 					JOptionPane.showMessageDialog(window,
 							"Duplicate fields are not allowed!");
@@ -645,7 +732,7 @@ public class Main implements ActionListener {
 			{
 				for (int i = 0; i < pool.getNumFields(); i++)
 				{
-					if (pool.getField(i).equals(currentField))
+					if (pool.getField(i).toString().equals(currentField))
 					{
 						currentLoc = i;
 						break;

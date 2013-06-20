@@ -1,20 +1,23 @@
-import java.util.*;
 import java.io.*;
+import java.util.*;
+import javax.swing.*;
 
 class Pool
 {
 	
-	private ArrayList<String> fields;
+	private ArrayList<Field> fields;
 	private ArrayList<Member> members;
 	private int numFields;
 	private int numMembers;
+	private JFrame parent;
 	
-	Pool ()
+	Pool (JFrame frame)
 	{
-		fields = new ArrayList<String>();
+		fields = new ArrayList<Field>();
 		members = new ArrayList<Member> ();
 		numFields = 0;
 		numMembers = 0;
+		parent = frame;
 	}
 	
 	ArrayList<Member> getMembers()
@@ -40,12 +43,11 @@ class Pool
 		}
 		catch (Exception e)
 		{
-			// Error message
 		}
 		return null;
 	}
 	
-	String getField (int loc)
+	Field getField (int loc)
 	{
 		try
 		{
@@ -53,17 +55,21 @@ class Pool
 		}
 		catch (Exception e)
 		{
-			// Error message
 		}
 		return null;
 	}
 	
-	boolean setField (int loc, String name)
+	boolean setFieldName (int loc, String name)
 	{
-		int ind = fields.indexOf(name);
-		if (ind != -1 && ind != loc)
-			return false;
-		fields.set(loc, name);
+		for (int i = 0; i < numFields; i++)
+		{
+			if (fields.get(i).toString().equals(name)
+				&& i != loc)
+			{
+				return false;
+			}
+		}
+		fields.get(loc).setName(name);
 		return true;
 	}
 	
@@ -82,16 +88,25 @@ class Pool
 	
 	boolean addField (String field)
 	{
-		if (fields.indexOf(field) != -1)
+		boolean found = false;
+		for (int i = 0; i < numFields; i++)
+		{
+			if (fields.get(i).toString().equals(field))
+			{
+				found = true;
+				break;
+			}
+		}
+		if (found)
 		{
 			return false;
 		}
-		fields.add (field);
+		fields.add (new Field (field));
 		ArrayList<Integer> temp;
 		for (int i = 0; i < numMembers; i++)
 		{
 			temp = members.get(i).getValues();
-			temp.add(new Integer (1));
+			temp.add(new Integer (0));
 			members.get(i).setValues(temp);
 		}
 		numFields++;
@@ -100,7 +115,15 @@ class Pool
 	
 	int removeField (String field)
 	{
-		int loc = fields.indexOf(field);
+		int loc = -1;
+		for (int i = 0; i < numFields; i++)
+		{
+			if (fields.get(i).toString().equals(field))
+			{
+				loc = i;
+				break;
+			}
+		}
 		if (loc == -1)
 		{
 			return loc;
@@ -156,7 +179,19 @@ class Pool
 			out.print("FIELDS");
 			for (int i = 0; i < fields.size(); i++)
 			{
-				out.print(";;" + fields.get(i));
+				out.print("" + (char)178 + fields.get(i));
+			}
+			out.println();
+			out.print("LOWER");
+			for (int i = 0; i < fields.size(); i++)
+			{
+				out.print("" + (char)178 + fields.get(i).getLowerLimit());
+			}
+			out.println();
+			out.print("UPPER");
+			for (int i = 0; i < fields.size(); i++)
+			{
+				out.print("" + (char)178 + fields.get(i).getUpperLimit());
 			}
 			out.println();
 			for (int j = 0; j < members.size(); j++)
@@ -164,15 +199,15 @@ class Pool
 				out.print(members.get(j).toString());
 				for (int i = 0; i < fields.size(); i++)
 				{
-					out.print(";;" + members.get(j).getValueAtLocation(i));
+					out.print("" + (char)178 + members.get(j).getValueAtLocation(i));
 				}
 				out.println();
 			}
 			out.close();
 		}
-		catch (Exception e)
+		catch (IOException e)
 		{
-			// Error message
+			JOptionPane.showMessageDialog(parent, "Sorry, something went wrong! The file was not formatted correctly!");
 		}
 	}
 	
@@ -181,37 +216,39 @@ class Pool
 		try
 		{
 			BufferedReader in = new BufferedReader (new FileReader (fileName));
-			String [] tempArr = in.readLine().split(";;");
+			String [] tempArr = in.readLine().split("" + (char)178);
 			numFields = tempArr.length - 1;
-			fields = new ArrayList<String> (Arrays.asList(tempArr));
-			fields.remove(0);
+			ArrayList<String> fieldNames = new ArrayList<String> (Arrays.asList(tempArr));
+			fieldNames.remove(0);
+			tempArr = in.readLine().split("" + (char)178);
+			ArrayList<String> lowerLimits = new ArrayList<String> (Arrays.asList(tempArr));
+			lowerLimits.remove(0);
+			tempArr = in.readLine().split("" + (char)178);
+			ArrayList<String> upperLimits = new ArrayList<String> (Arrays.asList(tempArr));
+			upperLimits.remove(0);
+			fields = new ArrayList<Field> ();
+			for (int i = 0; i < numFields; i++)
+				fields.add(new Field(fieldNames.get(i), Integer.parseInt(lowerLimits.get(i)), Integer.parseInt(upperLimits.get(i))));
 			numMembers = 0;
 			members = new ArrayList<Member>();
 			while (tempArr != null)
 			{
-				tempArr = in.readLine().split(";;");
+				tempArr = in.readLine().split("" + (char)178);
 				ArrayList<Integer> tempVals = new ArrayList<Integer>();
 				Integer temp;
 				for (int i = 0; i < numFields; i++)
 				{
-					try
-					{
-						temp = new Integer (tempArr[i+1]);
-						tempVals.add(temp);
-					}
-					catch (Exception e)
-					{
-						// Error message
-					}
+					temp = new Integer (tempArr[i+1]);
+					tempVals.add(temp);
 				}
 				members.add(new Member(tempArr[0], tempVals));
 				numMembers++;
 			}
 			in.close();
 		}
-		catch (Exception e)
+		catch (IOException e)
 		{
-			// Error message
+			JOptionPane.showMessageDialog(parent, "Sorry, something went wrong! The file was not formatted correctly!");
 		}
 	}
 }
