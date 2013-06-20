@@ -108,7 +108,7 @@ public class Main implements ActionListener {
 		return true;
 	}
 
-	private Main() {
+	private Main() {		
 		window = new JFrame("Team Maker");
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setLayout(new BoxLayout(window.getContentPane(),

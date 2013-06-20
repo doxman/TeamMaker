@@ -231,9 +231,10 @@ class Pool
 				fields.add(new Field(fieldNames.get(i), Integer.parseInt(lowerLimits.get(i)), Integer.parseInt(upperLimits.get(i))));
 			numMembers = 0;
 			members = new ArrayList<Member>();
-			while (tempArr != null)
+			String buffer = in.readLine();
+			while (buffer != null)
 			{
-				tempArr = in.readLine().split("" + (char)178);
+				tempArr = buffer.split("" + (char)178);
 				ArrayList<Integer> tempVals = new ArrayList<Integer>();
 				Integer temp;
 				for (int i = 0; i < numFields; i++)
@@ -243,6 +244,7 @@ class Pool
 				}
 				members.add(new Member(tempArr[0], tempVals));
 				numMembers++;
+				buffer = in.readLine();
 			}
 			in.close();
 		}
