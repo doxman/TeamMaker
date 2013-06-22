@@ -33,6 +33,8 @@ public class Main implements ActionListener {
 	private boolean isBoolean;
 	private int lastLower;
 	private int lastUpper;
+	
+	ArrayList<Integer> columnWidths;
 
 	private void storeValues()
 	{
@@ -219,6 +221,9 @@ public class Main implements ActionListener {
 		isBoolean = false;
 		lastLower = 0;
 		lastUpper = 10;
+		
+		columnWidths = new ArrayList<Integer> ();
+		columnWidths.add(new Integer(305));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -333,14 +338,17 @@ public class Main implements ActionListener {
 		pool.getField(pool.getNumFields() - 1).setLimits(lowerLimit, upperLimit);
 		if (isBoolean)
 			pool.getField(pool.getNumFields() - 1).setBoolean(true);
-		
 		JButton jb = new JButton (s);
 		jb.addActionListener(this);
-		jb.setPreferredSize(new Dimension(300, 25));
 		current.add(jb, pool.getNumFields());
+		int horDistance = 0;
+		for (int i = 0; i < columnWidths.size(); i++)
+		{
+			horDistance += columnWidths.get(i).intValue();
+		}
 		scrollLayout.putConstraint(SpringLayout.WEST,
 				current.getComponent(pool.getNumFields()),
-				300 * pool.getNumFields() + 5, SpringLayout.WEST, current);
+				horDistance, SpringLayout.WEST, current);
 		scrollLayout.putConstraint(SpringLayout.NORTH,
 				current.getComponent(pool.getNumFields()), 5,
 				SpringLayout.NORTH, current);
@@ -361,7 +369,7 @@ public class Main implements ActionListener {
 			scrollLayout.putConstraint(
 					SpringLayout.WEST,
 					current.getComponent((i + 2) * pool.getNumFields()
-							+ (i + 1)), 300 * pool.getNumFields() + 123,
+							+ (i + 1)), horDistance,
 					SpringLayout.WEST, current);
 			scrollLayout.putConstraint(
 					SpringLayout.NORTH,
@@ -369,9 +377,6 @@ public class Main implements ActionListener {
 							+ (i + 1)), 25 * (i + 1) + 5,
 					SpringLayout.NORTH, current);
 		}
-		if (pool.getNumFields() > 2)
-			current.setPreferredSize(new Dimension(
-					current.getWidth() + 300, current.getHeight()));
 	}
 	
 	private void addField (boolean isBoolean, int lowerLimit, int upperLimit)
@@ -394,11 +399,15 @@ public class Main implements ActionListener {
 			pool.getField(pool.getNumFields() - 1).setBoolean(true);
 		JButton jb = new JButton (s);
 		jb.addActionListener(this);
-		jb.setPreferredSize(new Dimension(300, 25));
 		current.add(jb, pool.getNumFields());
+		int horDistance = 0;
+		for (int i = 0; i < columnWidths.size(); i++)
+		{
+			horDistance += columnWidths.get(i).intValue();
+		}
 		scrollLayout.putConstraint(SpringLayout.WEST,
 				current.getComponent(pool.getNumFields()),
-				300 * pool.getNumFields() + 5, SpringLayout.WEST, current);
+				horDistance, SpringLayout.WEST, current);
 		scrollLayout.putConstraint(SpringLayout.NORTH,
 				current.getComponent(pool.getNumFields()), 5,
 				SpringLayout.NORTH, current);
@@ -419,7 +428,7 @@ public class Main implements ActionListener {
 			scrollLayout.putConstraint(
 					SpringLayout.WEST,
 					current.getComponent((i + 2) * pool.getNumFields()
-							+ (i + 1)), 300 * pool.getNumFields() + 123,
+							+ (i + 1)), horDistance,
 					SpringLayout.WEST, current);
 			scrollLayout.putConstraint(
 					SpringLayout.NORTH,
@@ -427,9 +436,6 @@ public class Main implements ActionListener {
 							+ (i + 1)), 25 * (i + 1) + 5,
 					SpringLayout.NORTH, current);
 		}
-		if (pool.getNumFields() > 2)
-			current.setPreferredSize(new Dimension(
-					current.getWidth() + 300, current.getHeight()));
 	}
 	
 	private void addMember ()
@@ -473,9 +479,14 @@ public class Main implements ActionListener {
 			JSpinner temp = new JSpinner(new SpinnerListModel(options));
 			temp.setPreferredSize(new Dimension(75, 25));
 			current.add(temp);
+			int distance = 0;
+			for (int j = 0; j <= i; j++)
+			{
+				distance += columnWidths.get(j).intValue();
+			}
 			scrollLayout.putConstraint(SpringLayout.WEST,
 					current.getComponent(current.getComponentCount() - 1),
-					300 * (i + 1) + 123, SpringLayout.WEST, current);
+					distance, SpringLayout.WEST, current);
 			scrollLayout.putConstraint(SpringLayout.NORTH,
 					current.getComponent(current.getComponentCount() - 1),
 					25 * pool.getNumMembers() + 5, SpringLayout.NORTH,
@@ -502,21 +513,36 @@ public class Main implements ActionListener {
 				JOptionPane.showMessageDialog(window, "No such field exists!");
 				return;
 			}
+			columnWidths.remove(loc + 1);
 			for (int i = 0; i < pool.getNumMembers() + 1; i++) {
 				current.remove(i * (pool.getNumFields() + 1) + (loc + 1));
-				if (loc != pool.getNumFields()) {
-					for (int j = loc; j < pool.getNumFields(); j++) {
+				if (loc != pool.getNumFields())
+				{
+					for (int j = loc; j < pool.getNumFields(); j++)
+					{
+						int distance = 0;
+						for (int k = 0; k <= j; k++)
+						{
+							distance += columnWidths.get(k).intValue();
+						}
+						if (current.getComponent(j + 1).getWidth() > 75 && i != 0)
+							distance += (current.getComponent(j + 1).getWidth() - 75)/2;
 						scrollLayout.putConstraint(
 								SpringLayout.WEST,
 								current.getComponent(i
 										* (pool.getNumFields() + 1) + (j + 1)),
-								300 * (j + 1) + 5, SpringLayout.WEST, current);
+								distance, SpringLayout.WEST, current);
 					}
 				}
+			}			
+			int distance = 0;
+			for (int i = 0; i < columnWidths.size(); i++)
+			{
+				distance += columnWidths.get(i).intValue();
 			}
-			if (pool.getNumFields() > 1)
+			if (current.getWidth() > distance && current.getWidth() > 900)
 				current.setPreferredSize(new Dimension(
-						current.getWidth() - 300, current.getHeight()));
+						Math.max(900, distance), current.getHeight()));
 		} else if (e.getSource() == buttonPane.getComponent(2)) {
 			addMember();
 		} else if (e.getSource() == buttonPane.getComponent(3)) {
@@ -580,25 +606,47 @@ public class Main implements ActionListener {
 					}
 					pool.readFromFile(fileName);
 					current.removeAll();
+					columnWidths = new ArrayList<Integer> ();
 					current.add(new JLabel("Name"));
+					columnWidths.add(new Integer (305));
 					scrollLayout.putConstraint(SpringLayout.WEST,
-							current.getComponent(0), 5, SpringLayout.WEST,
+							current.getComponent(0), 140, SpringLayout.WEST,
 							current);
 					scrollLayout.putConstraint(SpringLayout.NORTH,
 							current.getComponent(0), 5, SpringLayout.NORTH,
 							current);
-					for (int i = 0; i < pool.getNumFields(); i++) {
-						JButton temp = new JButton(pool.getField(i).toString());
+					for (int i = 1; i <= pool.getNumFields(); i++) {
+						JButton temp = new JButton(pool.getField(i - 1).toString());
 						temp.addActionListener(this);
-						temp.setPreferredSize(new Dimension(300, 25));
 						current.add(temp);
+						int distance = 0;
+						for (int j = 0; j < i; j++)
+						{
+							distance += current.getComponent(j).getWidth();
+						}
 						scrollLayout.putConstraint(SpringLayout.WEST,
-								current.getComponent(i + 1), 300 * (i + 1) + 5,
+								current.getComponent(i), distance,
 								SpringLayout.WEST, current);
 						scrollLayout.putConstraint(SpringLayout.NORTH,
-								current.getComponent(i + 1), 5,
+								current.getComponent(i), 5,
 								SpringLayout.NORTH, current);
 					}
+					current.revalidate();
+					window.validate();
+					for (int i = 1; i <= pool.getNumFields(); i++)
+					{
+						if (current.getComponent(i).getWidth() < 75)
+							current.getComponent(i).setPreferredSize (new Dimension (75, 25));
+					}
+					current.revalidate();
+					window.validate();
+					int width = 305;
+					for (int i = 1; i <= pool.getNumFields(); i++)
+					{
+						columnWidths.add(new Integer(current.getComponent(i).getWidth()));
+						width += columnWidths.get(i).intValue();
+					}
+					current.setPreferredSize(new Dimension(width, 30));
 					for (int j = 0; j < pool.getNumMembers(); j++) {
 						JButton temp = new JButton(pool.getMember(j).getName());
 						temp.setPreferredSize(new Dimension(300, 25));
@@ -634,10 +682,17 @@ public class Main implements ActionListener {
 									spin.setValue("False");
 							}
 							current.add(spin);
+							int dist = 0;
+							for (int i = 0; i <= k; i++)
+							{
+								dist += columnWidths.get(i).intValue();
+							}
+							if (columnWidths.get(k).intValue() > 75)
+								dist += (columnWidths.get(k).intValue() - 75)/2;
 							scrollLayout.putConstraint(SpringLayout.WEST,
 									current.getComponent(current
 											.getComponentCount() - 1),
-									300 * (k + 1) + 123, SpringLayout.WEST,
+									dist, SpringLayout.WEST,
 									current);
 							scrollLayout.putConstraint(SpringLayout.NORTH,
 									current.getComponent(current
@@ -646,9 +701,10 @@ public class Main implements ActionListener {
 									current);
 						}
 					}
-					int width = Math.max(715, 300 * (pool.getNumFields() + 1));
 					int height = Math.max(230, 25 * (pool.getNumMembers() + 1));
 					current.setPreferredSize(new Dimension(width, height));
+					current.revalidate();
+					window.validate();
 			}
 		} else if (e.getSource() == printButton) {
 			try 
@@ -769,8 +825,23 @@ public class Main implements ActionListener {
 			JPanel teamPanel = new JPanel(new GridLayout(1, 0));
 			teamTable = new JTable(model);
 			teamTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+			FontMetrics metrics = teamTable.getFontMetrics(teamTable.getFont());
+			int widest = metrics.stringWidth("Team " + numTeams);
+			for (int i = 0; i < largestTeam; i++)
+			{
+				for (int j = 0; j < numTeams; j++)
+				{
+					if (teamMembers[i][j] == null)
+						continue;
+					else if (metrics.stringWidth(((Member)teamMembers[i][j]).toString()) > widest)
+						widest = metrics.stringWidth(((Member)teamMembers[i][j]).toString());
+				}
+			}
+			widest += 10;
 			for (int i = 0; i < numTeams; i++)
-				teamTable.getColumnModel().getColumn(i).setPreferredWidth(230);
+			{
+				teamTable.getColumnModel().getColumn(i).setPreferredWidth(widest);
+			}
 			JScrollPane teamScroll = new JScrollPane(teamTable);
 			teamScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 			teamScroll.setPreferredSize(new Dimension (teamTable.getColumnCount() * 230, teamTable.getRowCount() * 16));
@@ -785,27 +856,39 @@ public class Main implements ActionListener {
 			if (isField)
 			{
 				int loc = pool.removeField(currentField);
+				columnWidths.remove(loc + 1);
 				for (int i = 0; i < pool.getNumMembers() + 1; i++) {
 					current.remove(i * (pool.getNumFields() + 1) + (loc + 1));
 					if (loc != pool.getNumFields()) {
 						for (int j = loc; j < pool.getNumFields(); j++)
 						{
+							int distance = 0;
+							for (int k = 0; k <= j; k++)
+							{
+								distance += columnWidths.get(k).intValue();
+							}
+							if (current.getComponent(j + 1).getWidth() > 75 && i != 0)
+								distance += (current.getComponent(j + 1).getWidth() - 75)/2;
 							scrollLayout.putConstraint(
 									SpringLayout.WEST,
 									current.getComponent(i
 											* (pool.getNumFields() + 1) + (j + 1)),
-									300 * (j + 1) + 5, SpringLayout.WEST, current);
+									distance, SpringLayout.WEST, current);
 						}
 					}
 				}
-				if (pool.getNumFields() > 1)
+				int distance = 0;
+				for (int i = 0; i < columnWidths.size(); i++)
+				{
+					distance += columnWidths.get(i).intValue();
+				}
+				if (current.getWidth() > distance && current.getWidth() > 900)
 					current.setPreferredSize(new Dimension(
-							current.getWidth() - 300, current.getHeight()));
+							Math.max(900, distance), current.getHeight()));
 			}
 			else
 			{
 				int loc = pool.removeMember(currentField);
-
 				for (int i = 0; i < pool.getNumFields() + 1; i++) {
 					current.remove((loc + 1) * (pool.getNumFields() + 1));
 					if (loc != pool.getNumMembers()) {
@@ -844,6 +927,13 @@ public class Main implements ActionListener {
 					return;
 				}
 				((JButton)current.getComponent(currentLoc + 1)).setText(s);
+				FontMetrics metrics = current.getComponent(currentLoc + 1).getFontMetrics(current.getComponent(currentLoc + 1).getFont());
+				int width = metrics.stringWidth(s);
+				if (width > 35)
+					current.getComponent(currentLoc + 1).setPreferredSize(new Dimension(width + 40, 25));
+				else
+					current.getComponent(currentLoc + 1).setPreferredSize(new Dimension(75, 25));
+				columnWidths.set(currentLoc + 1, new Integer(Math.max (width + 40, 75)));
 			}
 			else
 			{
@@ -905,6 +995,49 @@ public class Main implements ActionListener {
 			modifyField.setResizable (false);
 			modifyField.setVisible(true);
 		}
+		current.revalidate();
+		window.validate();
+		if (pool.getNumFields() == columnWidths.size())
+		{
+			int newWidth = current.getComponent(pool.getNumFields()).getWidth();
+			if (newWidth < 75)
+			{
+				current.getComponent(pool.getNumFields()).setPreferredSize(new Dimension(75, 25));
+			}
+			current.revalidate();
+			window.validate();
+			columnWidths.add(new Integer(Math.max(newWidth, 75)));
+		}
+		for (int j = 1; j <= pool.getNumFields(); j++)
+		{
+			int distance = 0;
+			for (int i = 0; i < j; i++)
+			{
+				distance += columnWidths.get(i).intValue();
+			}
+			scrollLayout.putConstraint(SpringLayout.WEST,
+					current.getComponent(j),
+					distance, SpringLayout.WEST, current);
+			if (current.getComponent(j).getWidth() > 75)
+				distance += (current.getComponent(j).getWidth() - 75)/2;
+			for (int i = 1; i <= pool.getNumMembers(); i++)
+			{
+					scrollLayout.putConstraint(SpringLayout.WEST,
+						current.getComponent(i * (pool.getNumFields() + 1) + j),
+						distance, SpringLayout.WEST, current);
+			}
+		}
+		int distance = 0;
+		for (int i = 0; i < columnWidths.size(); i++)
+		{
+			distance += columnWidths.get(i).intValue();
+		}
+		if (distance > 900)
+			current.setPreferredSize(new Dimension(
+					distance, current.getHeight()));
+		else
+			current.setPreferredSize(new Dimension(
+					900, current.getHeight()));
 		current.revalidate();
 		window.validate();
 		window.repaint();
