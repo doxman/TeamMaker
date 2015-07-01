@@ -95,10 +95,10 @@ public class Main implements ActionListener {
 					"The name was too long!");
 			return false;
 		}
-		else if (s.indexOf(178) != -1)
+		else if (s.indexOf(';') != -1)
 		{
 			JOptionPane.showMessageDialog(window, 
-					"Sorry, this character is reserved by the program.\n" +
+					"Sorry, the semicolon character is reserved by the program.\n" +
 					"I'm sure you have plenty of other options though...");
 			return false;
 		}
@@ -119,10 +119,10 @@ public class Main implements ActionListener {
 			JOptionPane.showMessageDialog(window,
 					"Not a possible name!");
 			return false;
-		}else if (s.indexOf(178) != -1)
+		}else if (s.indexOf(';') != -1)
 		{
 			JOptionPane.showMessageDialog(window, 
-					"There is no way you could possibly have this name!\n" +
+					"There is no way you could possibly have a semicolon in a name!\n" +
 					"Seriously, have you been looking at my code or something...?");
 			return false;
 		}
@@ -601,7 +601,7 @@ public class Main implements ActionListener {
 					try {
 						fileName = fileChooser.getSelectedFile().getCanonicalPath();
 					} catch (IOException x) {
-						JOptionPane.showMessageDialog(window, "Sorry, something went wrong! The program was could not load from this location!");
+						JOptionPane.showMessageDialog(window, "Sorry, something went wrong! The program could not load from this location!");
 						return;
 					}
 					pool.readFromFile(fileName);

@@ -179,25 +179,25 @@ class Pool
 			out.print("FIELDS");
 			for (int i = 0; i < fields.size(); i++)
 			{
-				out.print("" + (char)178 + fields.get(i));
+				out.print(";" + fields.get(i));
 			}
 			out.println();
 			out.print("LOWER");
 			for (int i = 0; i < fields.size(); i++)
 			{
-				out.print("" + (char)178 + fields.get(i).getLowerLimit());
+				out.print(";" + fields.get(i).getLowerLimit());
 			}
 			out.println();
 			out.print("UPPER");
 			for (int i = 0; i < fields.size(); i++)
 			{
-				out.print("" + (char)178 + fields.get(i).getUpperLimit());
+				out.print(";" + fields.get(i).getUpperLimit());
 			}
 			out.println();
 			out.print("BOOLEAN?");
 			for (int i = 0; i < fields.size(); i++)
 			{
-				out.print("" + (char)178 + fields.get(i).isBoolean());
+				out.print(";" + fields.get(i).isBoolean());
 			}
 			out.println();
 			for (int j = 0; j < members.size(); j++)
@@ -205,7 +205,7 @@ class Pool
 				out.print(members.get(j).toString());
 				for (int i = 0; i < fields.size(); i++)
 				{
-					out.print("" + (char)178 + members.get(j).getValueAtLocation(i));
+					out.print(";" + members.get(j).getValueAtLocation(i));
 				}
 				out.println();
 			}
@@ -222,17 +222,17 @@ class Pool
 		try
 		{
 			BufferedReader in = new BufferedReader (new FileReader (fileName));
-			String [] tempArr = in.readLine().split("" + (char)178);
+			String [] tempArr = in.readLine().split(";");
 			numFields = tempArr.length - 1;
 			ArrayList<String> fieldNames = new ArrayList<String> (Arrays.asList(tempArr));
 			fieldNames.remove(0);
-			tempArr = in.readLine().split("" + (char)178);
+			tempArr = in.readLine().split(";");
 			ArrayList<String> lowerLimits = new ArrayList<String> (Arrays.asList(tempArr));
 			lowerLimits.remove(0);
-			tempArr = in.readLine().split("" + (char)178);
+			tempArr = in.readLine().split(";");
 			ArrayList<String> upperLimits = new ArrayList<String> (Arrays.asList(tempArr));
 			upperLimits.remove(0);
-			tempArr = in.readLine().split("" + (char)178);
+			tempArr = in.readLine().split(";");
 			ArrayList<String> booleans = new ArrayList<String> (Arrays.asList(tempArr));
 			booleans.remove(0);
 			fields = new ArrayList<Field> ();
@@ -244,7 +244,7 @@ class Pool
 			String buffer = in.readLine();
 			while (buffer != null)
 			{
-				tempArr = buffer.split("" + (char)178);
+				tempArr = buffer.split(";");
 				ArrayList<Integer> tempVals = new ArrayList<Integer>();
 				Integer temp;
 				for (int i = 0; i < numFields; i++)
